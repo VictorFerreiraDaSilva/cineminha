@@ -17,14 +17,6 @@ CREATE TABLE genero(
 	CONSTRAINT pk_genero PRIMARY KEY (cd_genero)
 );
 
-DROP TABLE IF EXISTS pessoa;
-CREATE TABLE pessoa(
-	cd_pessoa INT,
-	nm_pessoa VARCHAR(255),
-    ds_pessoa TEXT,
-	CONSTRAINT pk_pessoa PRIMARY KEY (cd_pessoa)
-);
-
 DROP TABLE IF EXISTS dia;
 CREATE TABLE dia(
 	cd_dia INT,
@@ -107,4 +99,99 @@ CREATE TABLE sala(
     CONSTRAINT fk_sala_cinema FOREIGN KEY (cd_cinema) REFERENCES cinema(cd_cinema) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+DROP TABLE IF EXISTS caracteristica;
+CREATE TABLE caracteristica(
+	cd_caracteristica INT,
+    nm_caracteristica VARCHAR(255),
+    CONSTRAINT pk_caracteristica PRIMARY KEY (cd_caracteristica)
+);
 
+DROP TABLE IF EXISTS caracteristica_sala;
+CREATE TABLE caracteristica_sala(
+	cd_caracteristica INT,
+    cd_cinema INT,
+    cd_sala INT,
+    CONSTRAINT pk_caracteristica_sala PRIMARY KEY (cd_caracteristica, cd_cinema, cd_sala),
+    CONSTRAINT fk_cs_caracteristica FOREIGN KEY (cd_caracteristica) REFERENCES caracteristica(cd_caracteristica) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_cs_cinema FOREIGN KEY (cd_cinema) REFERENCES sala(cd_cinema) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_cs_sala FOREIGN KEY (cd_sala) REFERENCES sala(cd_sala) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS filme;
+CREATE TABLE filme(
+	cd_filme INT,
+    nm_filme VARCHAR(255),
+    ds_sinopse TEXT,
+    dt_lancamento DATE,
+    qt_minutos_duracao INT,
+    url_trailer VARCHAR(255),
+    ds_elenco TEXT,
+    ds_direcao TEXT,
+    ds_roteiro TEXT,
+    ds_producao TEXT,
+    CONSTRAINT pk_filme PRIMARY KEY (cd_filme)
+);
+
+DROP TABLE IF EXISTS genero_filme;
+CREATE TABLE genero_filme(
+	cd_filme INT,
+    cd_genero INT,
+    CONSTRAINT pk_genero_filme PRIMARY KEY (cd_filme, cd_genero),
+	CONSTRAINT fk_gf_filme FOREIGN KEY (cd_filme) REFERENCES filme(cd_filme) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_gf_genero FOREIGN KEY (cd_genero) REFERENCES genero(cd_genero) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS sessao;
+CREATE TABLE sessao(
+	cd_sessao INT,
+	cd_filme INT,
+    cd_cinema INT,
+    cd_sala INT,
+    dt_sessao DATE,
+    hr_sessao TIME,
+    CONSTRAINT pk_sessao PRIMARY KEY (cd_sessao, cd_filme),
+    CONSTRAINT fk_sessao_filme FOREIGN KEY (cd_filme) REFERENCES filme(cd_filme) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_sessao_cinema FOREIGN KEY (cd_cinema) REFERENCES sala(cd_cinema) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_sessao_sala FOREIGN KEY (cd_sala) REFERENCES sala(cd_sala) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS poltrona;
+CREATE TABLE poltrona(
+	cd_poltrona CHAR(4),
+	cd_cinema INT,
+    cd_sala INT,
+    ic_poltrona_deficiente boolean,
+    CONSTRAINT pk_poltrona PRIMARY KEY (cd_poltrona, cd_cinema, cd_sala),
+    CONSTRAINT fk_poltrona_cinema FOREIGN KEY (cd_cinema) REFERENCES sala(cd_cinema) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_poltrona_sala FOREIGN KEY (cd_sala) REFERENCES sala(cd_sala) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS compra;
+CREATE TABLE compra(
+	cpf_usuario CHAR(11),
+    cd_compra INT,
+    cd_sessao INT,
+	cd_filme INT,
+    dt_compra DATE,
+    hr_compra TIME,    
+    CONSTRAINT pk_compra PRIMARY KEY (cpf_usuario, cd_compra),
+    CONSTRAINT fk_compra_usuario FOREIGN KEY (cpf_usuario) REFERENCES usuario(cpf_usuario) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_compra_sessao FOREIGN KEY (cd_sessao) REFERENCES sessao(cd_sessao) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_compra_filme FOREIGN KEY (cd_filme) REFERENCES sessao(cd_filme) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS compra_poltrona;
+CREATE TABLE compra_poltrona(
+	cpf_usuario CHAR(11),
+    cd_compra INT,
+    cd_poltrona CHAR(4),
+	cd_cinema INT,
+    cd_sala INT,
+    vl_poltrona DECIMAL(10,2),
+    CONSTRAINT pf_compra_poltrona PRIMARY KEY (cpf_usuario, cd_compra, cd_poltrona,	cd_cinema, cd_sala),
+    CONSTRAINT fk_cp_usuario FOREIGN KEY (cpf_usuario) REFERENCES compra(cpf_usuario) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_cp_compra FOREIGN KEY (cd_compra) REFERENCES compra(cd_compra) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_cp_poltrona FOREIGN KEY (cd_poltrona) REFERENCES poltrona(cd_poltrona) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_cp_cinema FOREIGN KEY (cd_cinema) REFERENCES poltrona(cd_cinema) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_cp_sala FOREIGN KEY (cd_sala) REFERENCES poltrona(cd_sala) ON DELETE CASCADE ON UPDATE CASCADE
+);
